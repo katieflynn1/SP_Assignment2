@@ -1,7 +1,7 @@
 package com.example.store.service;
 
-import com.example.calendar.model.User;
-import com.example.calendar.repository.UserRepository;
+import com.example.store.model.User;
+import com.example.store.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

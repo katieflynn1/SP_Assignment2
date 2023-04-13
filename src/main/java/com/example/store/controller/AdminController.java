@@ -11,4 +11,20 @@ public class AdminController {
     public String adminHome(){
         return "admin/dashboard";
     }
+
+    @RequestMapping(value = {"/admin/stockMgmt"}, method = RequestMethod.GET)
+    public String adminStockMgmt(){
+        return "admin/stockMgmt";
+    }
+
+    @RequestMapping(value = {"/admin/customerHist"}, method = RequestMethod.GET)
+    public String adminCustomerHist(){
+        return "admin/customerHist";
+    }
+
+    @RequestMapping(value = {"/admin/purchaseSim"}, method = RequestMethod.GET)
+    public String adminPurchaseSim(){
+        return "admin/purchaseSim";
+    }
+
 }

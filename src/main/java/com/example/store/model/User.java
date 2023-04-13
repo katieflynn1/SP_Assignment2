@@ -61,6 +61,12 @@ public class User implements UserDetails  {
     @Length(min = 10, message = "Password should be atleast 10 number long")
     private String mobile;
 
+    @Column(name = "address", unique = true)
+    private String address;
+
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -120,7 +126,7 @@ public class User implements UserDetails  {
 
     public Role getRole() { return role; }
 
-    public void setRole(com.example.calendar.model.Role role) {
+    public void setRole(com.example.store.model.Role role) {
         this.role = role;
     }
 
@@ -139,4 +145,18 @@ public class User implements UserDetails  {
     public String getLastName() { return lastName; }
 
     public void setLastName(String lastName) { this.lastName = lastName; }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+
+    public void setPaymentMethod(com.example.store.model.PaymentMethod paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
 }
