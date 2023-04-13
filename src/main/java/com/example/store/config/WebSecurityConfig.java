@@ -1,7 +1,6 @@
 package com.example.store.config;
 
-
-import com.example.calendar.service.UserServiceImpl;
+import com.example.store.service.UserServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

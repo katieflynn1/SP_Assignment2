@@ -1,7 +1,7 @@
 package com.example.store.controller;
 
-import com.example.calendar.model.User;
-import com.example.calendar.service.UserService;
+import com.example.store.model.User;
+import com.example.store.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
