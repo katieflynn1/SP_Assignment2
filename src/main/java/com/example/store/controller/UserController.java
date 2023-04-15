@@ -14,7 +14,7 @@ public class UserController {
 
     @RequestMapping(value = {"/user/search"}, method = RequestMethod.GET)
     public String userSearch(){
-        return "user/search";
+        return "user/stockItem-list.html";
     }
 
     @RequestMapping(value = {"/user/buy"}, method = RequestMethod.GET)

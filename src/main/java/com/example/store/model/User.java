@@ -159,4 +159,6 @@ public class User implements UserDetails  {
     public void setPaymentMethod(com.example.store.model.PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
+
+    public Long getId() {return (long) id; }
 }

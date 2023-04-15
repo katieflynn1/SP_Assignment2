@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Cart</title>
+</head>
+<body>
+<h1>Cart</h1>
+<script th:inline="javascript">
+    $(document).ready(function() {
+        // Function to load the cart items
+        function loadCart() {
+            $.ajax({
+                url: '/products/cart',
+                type: 'GET',
+                success: function(items) {
+                    // Remove any existing items from the list
+                    $('#cart').empty();
+
+                    // Add each item to the DOM
+                    $.each(items, function(index, item) {
+                        var row = $('<tr>');
+                        $('<td>').text(item.title).appendTo(row);
+                        $('<td>').text(item.price).appendTo(row);
+                        $('<td>').text(item.quantity).appendTo(row);
+                        $('<td>').text(item.total).appendTo(row);
+                        row.appendTo('#cart');
+                    });
+
+                    // Update the total
+                    $('#total').text(cart.total);
+                },
+                error: function(xhr, status, error) {
+                    console.log("Error loading cart items: " + error);
+                }
+            });
+        }
+
+        // Call the loadCart function on page load
+        loadCart();
+
+        // Add event listener for checkout button clicks
+        $('#checkout-btn').click(function(event) {
+            event.preventDefault();
+            $.ajax({
+                url: '/products/checkout',
+                type: 'POST',
+                success: function(result) {
+                    console.log("Checkout successful!");
+                    // Redirect to the order confirmation page
+                    window.location.href = '/orders/confirmation';
+                },
+                error: function(xhr, status, error) {
+                    console.log("Error checking out: " + error);
+                }
+            });
+        });
+    });
+</script>
+
+<h1>Cart</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Quantity</th>
+        <th>Total</th>
+    </tr>
+    </thead>
+    <tbody id="cart">
+    <!-- Cart items will be dynamically added here -->
+    </tbody>
+    <tfoot>
+    <tr>
+        <td></td>
+        <td></td>
+        <td><strong>Total:</strong></td>
+        <td id="total"></td>
+    </tr>
+    </tfoot>
+</table>
+
+<button id="checkout-btn">Checkout</button>
+<a th:href="@{/products}">Continue shopping</a>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Product List</title>
+</head>
+<body>
+<h1>Product List</h1>
+
+<form method="get" th:action="@{/products}">
+    <label for="category">Category:</label>
+    <input type="text" id="category" name="category">
+    <br><br>
+
+    <label for="manufacturer">Manufacturer:</label>
+    <input type="text" id="manufacturer" name="manufacturer">
+    <br><br>
+
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title">
+    <br><br>
+
+    <button type="submit">Search</button>
+</form>
+
+<br>
+
+<table>
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Manufacturer</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="stockItem : ${stockItemList}">
+        <td th:text="${stockItem.title}"></td>
+        <td th:text="${stockItem.manufacturer}"></td>
+        <td th:text="${stockItem.category}"></td>
+        <td th:text="${stockItem.price}"></td>
+        <td>
+            <form method="post" th:action="@{/products/add-to-cart}">
+                <input type="hidden" name="stockItemId" th:value="${stockItem.id}">
+                <button type="submit">Add to Cart</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<div>
+    <a th:href="@{/products/cart}">Go to cart</a>
+</div>
+</body>
+</html>
