@@ -1,5 +1,6 @@
 package com.example.store.model;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.validator.constraints.Length;
@@ -7,26 +8,19 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 // USERS ENTITY CLASS
 @Entity
 @Table(name = "users")
-public class User implements UserDetails  {
+public class User implements UserDetails {
+    private static final long serialVersionUID = 1L;
     @SequenceGenerator(
             name = "users_sequence",
             sequenceName = "users_sequence",
@@ -67,9 +61,33 @@ public class User implements UserDetails  {
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 
+    @Column(name = "loyalty_member")
+    private boolean loyaltyMember;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CartItem> cartItems = new ArrayList<>();
+
+    public void addItemToCart(CartItem item) {
+        cartItems.add(item);
+        item.setUser(this);
+    }
+
+    public void removeItemFromCart(CartItem item) {
+        cartItems.remove(item);
+        item.setUser(null);
+    }
+
+    public List<CartItem> getCartItems() {
+        return cartItems;
+    }
+
+    public void setCartItems(List<CartItem> cartItems) {
+        this.cartItems = cartItems;
+    }
 
     @UpdateTimestamp
     @Column(name = "updated_at")
@@ -95,7 +113,7 @@ public class User implements UserDetails  {
         return password;
     }
 
-    public void setPassword(String password){
+    public void setPassword(String password) {
         this.password = password;
     }
 
@@ -124,27 +142,45 @@ public class User implements UserDetails  {
         return enabled;
     }
 
-    public Role getRole() { return role; }
+    public Role getRole() {
+        return role;
+    }
 
     public void setRole(com.example.store.model.Role role) {
         this.role = role;
     }
 
-    public String getEmail() { return email; }
+    public String getEmail() {
+        return email;
+    }
 
-    public void setEmail(String email) { this.email = email; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getFirstName() { return firstName; }
+    public String getFirstName() {
+        return firstName;
+    }
 
-    public void setFirstName(String firstName) { this.firstName = firstName;}
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-    public String getMobile() { return mobile; }
+    public String getMobile() {
+        return mobile;
+    }
 
-    public void setMobile(String mobile) { this.mobile = mobile; }
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
 
-    public String getLastName() { return lastName; }
+    public String getLastName() {
+        return lastName;
+    }
 
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
 
     public String getAddress() {
         return address;
@@ -154,11 +190,23 @@ public class User implements UserDetails  {
         this.address = address;
     }
 
-    public PaymentMethod getPaymentMethod() { return paymentMethod; }
+    public boolean isLoyaltyMember() {
+        return loyaltyMember;
+    }
+
+    public void setLoyaltyMember(boolean loyaltyMember) {
+        this.loyaltyMember = loyaltyMember;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
 
     public void setPaymentMethod(com.example.store.model.PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
 
-    public Long getId() {return (long) id; }
+    public Long getId() {
+        return (long) id;
+    }
 }

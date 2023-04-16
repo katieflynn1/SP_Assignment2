@@ -18,25 +18,25 @@ public class AuthController {
     UserService userService;
 
     @RequestMapping(value = {"/login"}, method = RequestMethod.GET)
-    public String login(){
+    public String login() {
         return "auth/login";
     }
 
     @RequestMapping(value = {"/register"}, method = RequestMethod.GET)
-    public String register(Model model){
+    public String register(Model model) {
         model.addAttribute("user", new User());
         return "auth/register";
     }
 
     @RequestMapping(value = {"/register"}, method = RequestMethod.POST)
-    public String registerUser(Model model, @Valid User user, BindingResult bindingResult){
-        if(bindingResult.hasErrors()){
+    public String registerUser(Model model, @Valid User user, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
             model.addAttribute("successMessage", "User registered successfully!");
             model.addAttribute("bindingResult", bindingResult);
             return "auth/register";
         }
         List<Object> userPresentObj = userService.isUserPresent(user);
-        if((Boolean) userPresentObj.get(0)){
+        if ((Boolean) userPresentObj.get(0)) {
             model.addAttribute("successMessage", userPresentObj.get(1));
             return "auth/register";
         }

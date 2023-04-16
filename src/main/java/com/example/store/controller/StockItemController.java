@@ -1,22 +1,14 @@
 package com.example.store.controller;
 
 import com.example.store.model.*;
-import com.example.store.repository.CartItemRepository;
-import com.example.store.repository.CartRepository;
-import com.example.store.repository.PurchaseHistoryRepository;
-import com.example.store.repository.UserRepository;
-import com.example.store.service.StockItemService;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.example.store.repository.*;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,120 +16,195 @@ import java.util.Optional;
 @RequestMapping("/products")
 public class StockItemController {
 
-    @Autowired
-    private StockItemService stockItemService;
+    private final StockItemRepository stockItemRepository;
+    private final UserRepository userRepository;
+    private final PurchaseHistoryRepository purchaseHistoryRepository;
 
-    @Autowired
-    private UserRepository userRepository;
+    public StockItemController(StockItemRepository stockItemRepository, UserRepository userRepository, PurchaseHistoryRepository purchaseHistoryRepository) {
+        this.stockItemRepository = stockItemRepository;
+        this.userRepository = userRepository;
+        this.purchaseHistoryRepository = purchaseHistoryRepository;
+    }
 
-    @Autowired
-    private CartRepository cartRepository;
-    @Autowired
-    private PurchaseHistoryRepository purchaseHistoryRepository;
-
-    @GetMapping("")
-    public String viewStockItems(Model model,
-                                 @RequestParam(required = false) String category,
-                                 @RequestParam(required = false) String manufacturer,
-                                 @RequestParam(required = false) String title,
-                                 @RequestParam(defaultValue = "title") String sortBy,
-                                 @RequestParam(defaultValue = "asc") String sortDir) {
-
+    // USER - GET LIST OF ITEMS
+    @GetMapping
+    public String viewProductList(@RequestParam(required = false) String category,
+                                  @RequestParam(required = false) String manufacturer,
+                                  @RequestParam(required = false) String title,
+                                  @RequestParam(required = false, defaultValue = "title_asc") String order,
+                                  Model model) {
         List<StockItem> stockItemList;
 
-        if (category != null || manufacturer != null || title != null) {
-            // if search parameters are provided, search for matching StockItems
-            stockItemList = stockItemService.searchStockItems(category, manufacturer, title, sortBy, sortDir);
+        if (category != null && !category.isEmpty()) {
+            stockItemList = stockItemRepository.findByCategoryContainingIgnoreCase(category);
+        } else if (manufacturer != null && !manufacturer.isEmpty()) {
+            stockItemList = stockItemRepository.findByManufacturerContainingIgnoreCase(manufacturer);
+        } else if (title != null && !title.isEmpty()) {
+            stockItemList = stockItemRepository.findByTitleContainingIgnoreCase(title);
         } else {
-            // if no search parameters are provided, return all StockItems
-            stockItemList = stockItemService.getAllStockItems(sortBy, sortDir);
+            stockItemList = stockItemRepository.findAll();
+        }
+
+        switch (order) {
+            case "title_asc":
+                stockItemList.sort(Comparator.comparing(StockItem::getTitle));
+                break;
+            case "title_desc":
+                stockItemList.sort(Comparator.comparing(StockItem::getTitle).reversed());
+                break;
+            case "manufacturer_asc":
+                stockItemList.sort(Comparator.comparing(StockItem::getManufacturer));
+                break;
+            case "manufacturer_desc":
+                stockItemList.sort(Comparator.comparing(StockItem::getManufacturer).reversed());
+                break;
+            case "price_asc":
+                stockItemList.sort(Comparator.comparing(StockItem::getPrice));
+                break;
+            case "price_desc":
+                stockItemList.sort(Comparator.comparing(StockItem::getPrice).reversed());
+                break;
         }
 
         model.addAttribute("stockItemList", stockItemList);
         return "user/stockItem-list";
     }
 
-    @PostMapping("/add-to-cart")
-    public String addToCart(@RequestParam("stockItemId") Long stockItemId, HttpSession session, @AuthenticationPrincipal User user) {
+    // ADD ITEMS TO CART
+    @PostMapping("/addToCart")
+    public String addToCart(@RequestParam("itemId") Long itemId, @RequestParam("quantity") int quantity, Principal principal) {
 
-        Cart cart = (Cart) session.getAttribute("cart");
-        if (cart == null) {
-            cart = new Cart(user);
+        // RETRIEVE CURRENT USER
+        User user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if (user == null) {
+            return "redirect:/login";
         }
 
-        StockItem stockItem = stockItemService.getStockItemById(stockItemId);
-        if (stockItem == null) {
+        // RETRIEVE STOCK ITEM
+        Optional<StockItem> optionalStockItem = stockItemRepository.findById(itemId);
+        if (!optionalStockItem.isPresent()) {
             return "redirect:/products";
         }
+        StockItem stockItem = optionalStockItem.get();
 
-        CartItem cartItem = new CartItem();
-        cartItem.setProductId(stockItem.getId());
-        cartItem.setTitle(stockItem.getTitle());
-        cartItem.setPrice(stockItem.getPrice());
-        cartItem.setQuantity(1);
+        // CHECK IF CARTITEM ALREADY EXISTS
+        Optional<CartItem> optionalCartItem = user.getCartItems().stream()
+                .filter(item -> item.getProductId().equals(itemId))
+                .findFirst();
 
-        Optional<User> userOptional = userRepository.findByEmail(user.getEmail());
-        User cartUser = userOptional.orElseThrow(() -> new RuntimeException("User not found"));
-        cart.setUserId(cartUser);
+        if (optionalCartItem.isPresent()) {
+            // UPDATE IF CARTITEM EXISTS
+            CartItem cartItem = optionalCartItem.get();
+            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        } else {
+            // CREATE NEW IF CARTITEM DOES NOT EXIST
+            CartItem cartItem = new CartItem(stockItem.getId(), stockItem.getTitle(), stockItem.getPrice(), quantity);
+            user.addItemToCart(cartItem);
+        }
 
-        cart.addItem(cartItem);
-        cartRepository.save(cart);
-
-        session.setAttribute("cart", cart);
+        userRepository.save(user);
 
         return "redirect:/products";
     }
 
-    @GetMapping("/cart")
-    public String viewCart(Model model, HttpSession session) {
-        Cart cart = (Cart) session.getAttribute("cart");
-        if (cart == null) {
-            cart = new Cart();
+    // USER - GET CART PAGE
+    @GetMapping("/cartPage")
+    public String getCartPage(Model model, Principal principal) {
+        User user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if (user == null) {
+            return "redirect:/login";
         }
-
-        // Retrieve the cart items from the database based on the user's ID
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = userRepository.findByEmail(authentication.getName()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        List<CartItem> cartItems = cartRepository.findAllByUserId(user.getId());
-
-        // Add the cart items to the cart object
-        for (CartItem cartItem : cartItems) {
-            cart.addItem(cartItem);
-        }
-
-        // Update the session with the updated cart
-        session.setAttribute("cart", cart);
-
-        model.addAttribute("cart", cart);
+        model.addAttribute("cartItems", user.getCartItems());
         return "user/cart";
     }
 
+    // USER - CHECKOUT CART, ADJUST INVENTORY NUM FOR ITEMS AND SAVE PURCHASE HISTORY
     @PostMapping("/checkout")
-    public String checkout(HttpSession session) {
-        Cart cart = (Cart) session.getAttribute("cart");
-        if (cart == null || cart.getItems().isEmpty()) {
-            return "redirect:/user/products/cart";
+    public String checkoutCart(Principal principal) {
+
+        // RETRIEVE CURRENT USER
+        User user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if (user == null) {
+            return "redirect:/login";
         }
 
-        // Decrease the inventory of each product in the cart
-        for (CartItem item : cart.getItems()) {
-            StockItem stockItem = stockItemService.getStockItemById(item.getProductId());
-            if (stockItem != null) {
-                stockItem.setInventoryNum(stockItem.getInventoryNum() - item.getQuantity());
-                stockItemService.saveStockItem(stockItem);
+        // GET CART ITEMS + CALCULATE TOTAL PRICE
+        List<CartItem> cartItems = user.getCartItems();
+        double totalPrice = 0;
+        for (CartItem cartItem : cartItems) {
+            totalPrice += cartItem.getPrice() * cartItem.getQuantity();
+        }
+
+        // UPDATE INVENTORYNUM + SAVE PURCHASE HISTORY
+        for (CartItem cartItem : cartItems) {
+            Optional<StockItem> optionalStockItem = stockItemRepository.findById(cartItem.getProductId());
+            if (optionalStockItem.isPresent()) {
+                StockItem stockItem = optionalStockItem.get();
+                stockItem.setInventoryNum(stockItem.getInventoryNum() - cartItem.getQuantity());
+                stockItemRepository.save(stockItem);
+
+                PurchaseHistory purchaseHistory = new PurchaseHistory(cartItem.getTitle(), cartItem.getQuantity(), cartItem.getPrice(), totalPrice, user);
+                purchaseHistoryRepository.save(purchaseHistory);
             }
         }
 
-        // Save the cart data to the purchase history table
-        PurchaseHistory purchaseHistory = new PurchaseHistory();
-        purchaseHistory.setUser(cart.getUserId());
-        purchaseHistory.setCart(cart);
-        purchaseHistoryRepository.save(purchaseHistory);
-
-        // Delete the cart
-        cartRepository.delete(cart);
-        session.removeAttribute("cart");
+        // DELETE CART ITEMS + SAVE USER
+        user.getCartItems().clear();
+        userRepository.save(user);
 
         return "user/checkout-success";
+    }
+
+    // ADMIN - VIEW STOCK LIST
+    @GetMapping("/stockList")
+    public String viewStockList(@RequestParam(required = false) String category,
+                                @RequestParam(required = false) String manufacturer,
+                                @RequestParam(required = false) String title,
+                                @RequestParam(required = false, defaultValue = "title_asc") String order,
+                                Model model) {
+        List<StockItem> stockItemList;
+
+        if (category != null && !category.isEmpty()) {
+            stockItemList = stockItemRepository.findByCategoryContainingIgnoreCase(category);
+        } else if (manufacturer != null && !manufacturer.isEmpty()) {
+            stockItemList = stockItemRepository.findByManufacturerContainingIgnoreCase(manufacturer);
+        } else if (title != null && !title.isEmpty()) {
+            stockItemList = stockItemRepository.findByTitleContainingIgnoreCase(title);
+        } else {
+            stockItemList = stockItemRepository.findAll();
+        }
+
+        switch (order) {
+            case "title_asc":
+                stockItemList.sort(Comparator.comparing(StockItem::getTitle));
+                break;
+            case "title_desc":
+                stockItemList.sort(Comparator.comparing(StockItem::getTitle).reversed());
+                break;
+            case "manufacturer_asc":
+                stockItemList.sort(Comparator.comparing(StockItem::getManufacturer));
+                break;
+            case "manufacturer_desc":
+                stockItemList.sort(Comparator.comparing(StockItem::getManufacturer).reversed());
+                break;
+            case "price_asc":
+                stockItemList.sort(Comparator.comparing(StockItem::getPrice));
+                break;
+            case "price_desc":
+                stockItemList.sort(Comparator.comparing(StockItem::getPrice).reversed());
+                break;
+        }
+
+        model.addAttribute("stockItemList", stockItemList);
+        return "admin/stockMgmt";
+    }
+
+    // ADMIN - UPDATE STOCK
+    @PostMapping("/updateStock")
+    public String updateStock(@RequestParam("itemId") Long itemId, @RequestParam("quantity") Integer quantity) {
+        StockItem stockItem = stockItemRepository.findById(itemId).orElseThrow();
+        stockItem.setInventoryNum(stockItem.getInventoryNum() + quantity);
+        stockItemRepository.save(stockItem);
+        return "redirect:/admin/stockMgmt";
     }
 }
