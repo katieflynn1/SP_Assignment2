@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -18,17 +19,32 @@ public class PurchaseHistory {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "purchaseHistory", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "purchase_history_id")
     private List<CartItem> purchaseItems = new ArrayList<>();
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "quantity")
+    private int quantity;
+
+    @Column(name = "price")
+    private double price;
 
     @Column(name = "total_amount")
     private double totalAmount;
 
-    @Column(name = "purchase_date")
-    private LocalDateTime purchaseDate;
+    public PurchaseHistory(){}
+    public PurchaseHistory(String title, int quantity, double price, double totalAmount, User user) {
+        this.title = title;
+        this.quantity = quantity;
+        this.price = price;
+        this.totalAmount = totalAmount;
+        this.user = user;
+    }
 
-    private Cart cart;
-    // constructors, getters and setters
+    // GETTERS + SETTERS
     public Long getId() {
         return id;
     }
@@ -49,25 +65,23 @@ public class PurchaseHistory {
         return purchaseItems;
     }
 
-    public void setPurchaseItems(List<CartItem> purchaseItems) {
-        this.purchaseItems = purchaseItems;
-    }
-
     public double getTotalAmount() {
         return totalAmount;
     }
 
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
+    public String getTitle() {
+        return title;
     }
 
-    public LocalDateTime getPurchaseDate() {
-        return purchaseDate;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public void setPurchaseDate(LocalDateTime purchaseDate) {
-        this.purchaseDate = purchaseDate;
+    public double getPrice() {
+        return price;
     }
 
-    public void setCart(Cart cart) { this.cart = cart;}
+    public void setTitle(String title) {this.title = title;}
+
+    public void setPrice(double price) {this.price = price;}
 }

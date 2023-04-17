@@ -1,9 +1,108 @@
+<!--admin/stockMgmt.html-->
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<header>
+    <!-- NAVBAR-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow fixed-top">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{|/|}" th:text="'STAR ELECTRONICS'"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
+                    aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span
+                    class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" th:href="@{|/|}" th:text="'Home'"></a>
+                    </li>
+                    <li class="nav-item d-flex">
+                        <a class="nav-link" th:href="@{|/login|}" th:text="'Log in'"
+                           sec:authorize="hasRole('ROLE_ANONYMOUS')"></a>
+                        <a class="nav-link" th:href="@{|/register|}" th:text="'Register'"
+                           sec:authorize="hasRole('ROLE_ANONYMOUS')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{|/user/dashboard|}" th:text="'User Dashboard'"
+                           sec:authorize="hasAuthority('USER')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{|/admin/dashboard|}" th:text="'Admin Dashboard'"
+                           sec:authorize="hasAuthority('ADMIN')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/logout}" th:text="'Log out'"
+                           sec:authorize="isAuthenticated()"></a>
+                    </li>
+
+                    <a class="nav-link" sec:authentication="name" sec:authorize="isAuthenticated()"></a>
+                    <a class="nav-link" sec:authentication="authorities" sec:authorize="isAuthenticated()"></a>
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
 <body>
+<p>...............................................................</p>
+<h1>Product List</h1>
+<form method="get" th:action="@{/products/stockList}">
+    <label for="category">Category:</label>
+    <input type="text" id="category" name="category">
+    <br><br>
 
-<h1>STOCK MANAGEMENT TOOL</h1>
-<p>My first paragraph.</p>
+    <label for="manufacturer">Manufacturer:</label>
+    <input type="text" id="manufacturer" name="manufacturer">
+    <br><br>
 
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title">
+    <br><br>
+
+    <label for="order">Sort by:</label>
+    <select id="order" name="order">
+        <option value="title_asc">Title (A-Z)</option>
+        <option value="title_desc">Title (Z-A)</option>
+        <option value="manufacturer_asc">Manufacturer (A-Z)</option>
+        <option value="manufacturer_desc">Manufacturer (Z-A)</option>
+        <option value="price_asc">Price (Low-High)</option>
+        <option value="price_desc">Price (High-Low)</option>
+    </select>
+    <br><br>
+
+    <button type="submit">Search</button>
+</form>
+<br>
+<table>
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Manufacturer</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="stockItem : ${stockItemList}">
+        <td th:text="${stockItem.title}"></td>
+        <td th:text="${stockItem.manufacturer}"></td>
+        <td th:text="${stockItem.category}"></td>
+        <td th:text="${stockItem.price}"></td>
+        <td>
+            <form method="post" th:action="@{/products/updateStock}">
+                <input type="hidden" name="itemId" th:value="${stockItem.id}">
+                <input type="number" name="quantity" value="1" min="1">
+                <button type="submit">Add Stock</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
 </body>
 </html>

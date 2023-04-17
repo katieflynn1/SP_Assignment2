@@ -24,9 +24,7 @@ public class WebSecurityConfig {
 
     @Autowired
     private CustomLoginSucessHandler sucessHandler;
-    
-    
-    
+
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserServiceImpl();

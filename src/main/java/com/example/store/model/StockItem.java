@@ -28,7 +28,7 @@ public class StockItem {
     @Column(name = "inventory_num")
     private int inventoryNum;
 
-    // getters and setters
+    // GETTERS + SETTERS
     public Long getId() {
         return id;
     }

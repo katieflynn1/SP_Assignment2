@@ -1,87 +1,75 @@
+<!--user/cart.html-->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Cart</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<header>
+    <!-- NAVBAR-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow fixed-top">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{|/|}" th:text="'STAR ELECTRONICS'"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
+                    aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span
+                    class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" th:href="@{|/|}" th:text="'Home'"></a>
+                    </li>
+                    <li class="nav-item d-flex">
+                        <a class="nav-link" th:href="@{|/login|}" th:text="'Log in'"
+                           sec:authorize="hasRole('ROLE_ANONYMOUS')"></a>
+                        <a class="nav-link" th:href="@{|/register|}" th:text="'Register'"
+                           sec:authorize="hasRole('ROLE_ANONYMOUS')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{|/user/dashboard|}" th:text="'User Dashboard'"
+                           sec:authorize="hasAuthority('USER')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{|/admin/dashboard|}" th:text="'Admin Dashboard'"
+                           sec:authorize="hasAuthority('ADMIN')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/logout}" th:text="'Log out'"
+                           sec:authorize="isAuthenticated()"></a>
+                    </li>
+
+                    <a class="nav-link" sec:authentication="name" sec:authorize="isAuthenticated()"></a>
+                    <a class="nav-link" sec:authentication="authorities" sec:authorize="isAuthenticated()"></a>
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
 <body>
-<h1>Cart</h1>
-<script th:inline="javascript">
-    $(document).ready(function() {
-        // Function to load the cart items
-        function loadCart() {
-            $.ajax({
-                url: '/products/cart',
-                type: 'GET',
-                success: function(items) {
-                    // Remove any existing items from the list
-                    $('#cart').empty();
-
-                    // Add each item to the DOM
-                    $.each(items, function(index, item) {
-                        var row = $('<tr>');
-                        $('<td>').text(item.title).appendTo(row);
-                        $('<td>').text(item.price).appendTo(row);
-                        $('<td>').text(item.quantity).appendTo(row);
-                        $('<td>').text(item.total).appendTo(row);
-                        row.appendTo('#cart');
-                    });
-
-                    // Update the total
-                    $('#total').text(cart.total);
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error loading cart items: " + error);
-                }
-            });
-        }
-
-        // Call the loadCart function on page load
-        loadCart();
-
-        // Add event listener for checkout button clicks
-        $('#checkout-btn').click(function(event) {
-            event.preventDefault();
-            $.ajax({
-                url: '/products/checkout',
-                type: 'POST',
-                success: function(result) {
-                    console.log("Checkout successful!");
-                    // Redirect to the order confirmation page
-                    window.location.href = '/orders/confirmation';
-                },
-                error: function(xhr, status, error) {
-                    console.log("Error checking out: " + error);
-                }
-            });
-        });
-    });
-</script>
-
+<p>...............................................................</p>
 <h1>Cart</h1>
 <table>
     <thead>
     <tr>
-        <th>Product</th>
+        <th>Title</th>
         <th>Price</th>
         <th>Quantity</th>
-        <th>Total</th>
     </tr>
     </thead>
-    <tbody id="cart">
-    <!-- Cart items will be dynamically added here -->
-    </tbody>
-    <tfoot>
-    <tr>
-        <td></td>
-        <td></td>
-        <td><strong>Total:</strong></td>
-        <td id="total"></td>
+    <tbody>
+    <tr th:each="cartItem : ${cartItems}">
+        <td th:text="${cartItem.title}"></td>
+        <td th:text="${cartItem.price}"></td>
+        <td th:text="${cartItem.quantity}"></td>
     </tr>
-    </tfoot>
+    </tbody>
 </table>
 
-<button id="checkout-btn">Checkout</button>
-<a th:href="@{/products}">Continue shopping</a>
+<form method="post" th:action="@{/products/checkout}">
+    <button type="submit">Checkout</button>
+</form>
 </body>
 </html>
