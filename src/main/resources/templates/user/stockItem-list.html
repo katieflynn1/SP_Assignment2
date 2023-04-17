@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>Product List</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/navbar.css">
 </head>
 <header>
     <!-- NAVBAR-->
@@ -49,7 +50,6 @@
     </nav>
 </header>
 <body>
-<p>...............................................................</p>
 <h1>Product List</h1>
 <form method="get" th:action="@{/products}">
     <label for="category">Category:</label>
@@ -94,6 +94,7 @@
         <td th:text="${stockItem.manufacturer}"></td>
         <td th:text="${stockItem.category}"></td>
         <td th:text="${stockItem.price}"></td>
+        <td><img th:src="${stockItem.image}" height="100" width="100"/></td>
         <td>
             <form method="post" th:action="@{/products/addToCart}">
                 <input type="hidden" name="itemId" th:value="${stockItem.id}">
