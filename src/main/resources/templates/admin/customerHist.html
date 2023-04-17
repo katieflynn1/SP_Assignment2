@@ -1,0 +1,76 @@
+<!--admin/customerHist.html-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Customer Purchase History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/navbar.css">
+</head>
+<header>
+    <!-- NAVBAR-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow fixed-top">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{|/|}" th:text="'STAR ELECTRONICS'"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
+                    aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span
+                    class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" th:href="@{|/|}" th:text="'Home'"></a>
+                    </li>
+                    <li class="nav-item d-flex">
+                        <a class="nav-link" th:href="@{|/login|}" th:text="'Log in'"
+                           sec:authorize="hasRole('ROLE_ANONYMOUS')"></a>
+                        <a class="nav-link" th:href="@{|/register|}" th:text="'Register'"
+                           sec:authorize="hasRole('ROLE_ANONYMOUS')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{|/user/dashboard|}" th:text="'User Dashboard'"
+                           sec:authorize="hasAuthority('USER')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{|/admin/dashboard|}" th:text="'Admin Dashboard'"
+                           sec:authorize="hasAuthority('ADMIN')"></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/logout}" th:text="'Log out'"
+                           sec:authorize="isAuthenticated()"></a>
+                    </li>
+
+                    <a class="nav-link" sec:authentication="name" sec:authorize="isAuthenticated()"></a>
+                    <a class="nav-link" sec:authentication="authorities" sec:authorize="isAuthenticated()"></a>
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+<body>
+<div class="container py-4">
+    <h1>Customer Purchase History</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>User Email</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="userPurchase : ${userPurchases}">
+            <td th:text="${userPurchase.userEmail}"></td>
+            <td th:text="${userPurchase.productName}"></td>
+            <td th:text="${userPurchase.quantity}"></td>
+            <td th:text="${userPurchase.price}"></td>
+            <td th:text="${userPurchase.totalPrice}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
