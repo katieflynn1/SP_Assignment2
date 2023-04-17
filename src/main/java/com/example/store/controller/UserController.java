@@ -29,11 +29,6 @@ public class UserController {
         return "user/stockItem-list.html";
     }
 
-    @RequestMapping(value = {"/user/buy"}, method = RequestMethod.GET)
-    public String userBuy(){
-        return "user/buy";
-    }
-
     @RequestMapping(value = {"/user/rate"}, method = RequestMethod.GET)
     public String userRate(Model model) {
         List<StockItem> stockItemList = stockItemRepository.findAll();
