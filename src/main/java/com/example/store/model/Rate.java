@@ -14,7 +14,7 @@ public class Rate {
     private StockItem stockItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id ")
     private User user;
 
     @Column(name = "rating")

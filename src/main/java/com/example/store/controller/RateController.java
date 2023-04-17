@@ -28,34 +28,24 @@ public class RateController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("/rate-form/{stockItemId}")
-    public String showRateForm(@PathVariable Long stockItemId, Model model) {
-        StockItem stockItem = stockItemRepository.findById(stockItemId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid stock item id"));
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    @PostMapping("/add-review")
+    public String addReview(@RequestParam("itemId") Long itemId, @RequestParam("rating") int rating,
+                            @RequestParam("comment") String comment) {
+        // GET STOCK ITEM + USER OBJECTS
+        StockItem stockItem = stockItemRepository.findById(itemId).orElse(null);
+        User user = userRepository.findByEmail(SecurityContextHolder.getContext().getAuthentication().getName()).orElse(null);
+
+        if (stockItem == null || user == null) {
+            return "redirect:/";
+        }
         Rate rate = new Rate();
         rate.setStockItem(stockItem);
         rate.setUser(user);
-        model.addAttribute("rate", rate);
-        return "user/rate-form";
-    }
+        rate.setRating(rating);
+        rate.setComment(comment);
 
-    @PostMapping("/add-review")
-    public String addReview(@ModelAttribute Rate rate, @RequestParam("stockItemId") Long itemId, Authentication authentication) {
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email).get();
-        rate.setUser(user);
-        StockItem item = stockItemRepository.findById(itemId).orElseThrow();
-        rate.setStockItem(item);
+        // SAVE RATE OBJECT TO THE DATABASE
         rateRepository.save(rate);
-        return "redirect:/products/rate";
-    }
-
-    @GetMapping("/{stockItemId}/success")
-    public String showRateSuccessPage(@PathVariable Long stockItemId, Model model) {
-        StockItem stockItem = stockItemRepository.findById(stockItemId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid stock item id"));
-        model.addAttribute("stockItem", stockItem);
         return "user/rate-success";
     }
 }
